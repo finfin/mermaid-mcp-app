@@ -6,51 +6,83 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 
 ### Diagram Types (13 supported)
 
-| Type | Keyword |
-| --- | --- |
-| Flowchart | `flowchart` |
-| Sequence Diagram | `sequenceDiagram` |
-| Class Diagram | `classDiagram` |
-| State Diagram | `stateDiagram-v2` |
-| ER Diagram | `erDiagram` |
-| Gantt Chart | `gantt` |
-| Pie Chart | `pie` |
-| Git Graph | `gitGraph` |
-| Mindmap | `mindmap` |
-| Timeline | `timeline` |
-| User Journey | `journey` |
-| Requirement Diagram | `requirementDiagram` |
-| Quadrant Chart | `quadrantChart` |
+#### Flowchart
 
-### Gallery
+`flowchart` — General-purpose directed graphs. Supports top-down and left-right layouts, subgraphs, and various node shapes.
 
-<table>
-  <tr>
-    <td align="center"><img src="assets/images/flowchart.png" width="220"/><br/><sub>Flowchart</sub></td>
-    <td align="center"><img src="assets/images/sequence-diagram.png" width="220"/><br/><sub>Sequence Diagram</sub></td>
-    <td align="center"><img src="assets/images/class-diagram.png" width="220"/><br/><sub>Class Diagram</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/images/state-diagram.png" width="220"/><br/><sub>State Diagram</sub></td>
-    <td align="center"><img src="assets/images/er-diagram.png" width="220"/><br/><sub>ER Diagram</sub></td>
-    <td align="center"><img src="assets/images/gantt-chart.png" width="220"/><br/><sub>Gantt Chart</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/images/pie-chart.png" width="220"/><br/><sub>Pie Chart</sub></td>
-    <td align="center"><img src="assets/images/git-graph.png" width="220"/><br/><sub>Git Graph</sub></td>
-    <td align="center"><img src="assets/images/mindmap.png" width="220"/><br/><sub>Mindmap</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/images/timeline.png" width="220"/><br/><sub>Timeline</sub></td>
-    <td align="center"><img src="assets/images/user-journey.png" width="220"/><br/><sub>User Journey</sub></td>
-    <td align="center"><img src="assets/images/requirement-diagram.png" width="220"/><br/><sub>Requirement Diagram</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/images/quadrant-chart.png" width="220"/><br/><sub>Quadrant Chart</sub></td>
-    <td></td>
-    <td></td>
-  </tr>
-</table>
+![Flowchart](assets/images/flowchart.png)
+
+#### Sequence Diagram
+
+`sequenceDiagram` — Interaction between participants over time. Shows messages, loops, and alternative flows.
+
+![Sequence Diagram](assets/images/sequence-diagram.png)
+
+#### Class Diagram
+
+`classDiagram` — Object-oriented class structure with attributes, methods, and relationships (inheritance, composition, etc.).
+
+![Class Diagram](assets/images/class-diagram.png)
+
+#### State Diagram
+
+`stateDiagram-v2` — Finite state machines with transitions, composite states, and concurrency.
+
+![State Diagram](assets/images/state-diagram.png)
+
+#### ER Diagram
+
+`erDiagram` — Entity-relationship diagrams for data modeling with cardinality annotations.
+
+![ER Diagram](assets/images/er-diagram.png)
+
+#### Gantt Chart
+
+`gantt` — Project timelines with tasks, milestones, dependencies, and critical paths.
+
+![Gantt Chart](assets/images/gantt-chart.png)
+
+#### Pie Chart
+
+`pie` — Proportional data as pie slices with percentage labels.
+
+![Pie Chart](assets/images/pie-chart.png)
+
+#### Git Graph
+
+`gitGraph` — Git branch and commit history visualization with merge and cherry-pick flows.
+
+![Git Graph](assets/images/git-graph.png)
+
+#### Mindmap
+
+`mindmap` — Hierarchical tree of ideas radiating from a central root node.
+
+![Mindmap](assets/images/mindmap.png)
+
+#### Timeline
+
+`timeline` — Chronological events grouped by time period.
+
+![Timeline](assets/images/timeline.png)
+
+#### User Journey
+
+`journey` — User experience flows scored by satisfaction level across sections and actors.
+
+![User Journey](assets/images/user-journey.png)
+
+#### Requirement Diagram
+
+`requirementDiagram` — System requirements with type, risk, and verification method, linked to design elements.
+
+![Requirement Diagram](assets/images/requirement-diagram.png)
+
+#### Quadrant Chart
+
+`quadrantChart` — Four-quadrant scatter plot for prioritization and positioning analysis.
+
+![Quadrant Chart](assets/images/quadrant-chart.png)
 
 ### UI
 
@@ -62,6 +94,8 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 - **Theme support** — `dark` (auto-detected from system preference) and `light`
 
 ## Installation
+
+> **Requirements:** Node.js >= 20. Older versions of npx (Node 14/16) do not support the `-y` flag and will silently fail. If you use `nvm`, run `nvm alias default 20` and restart your MCP client.
 
 Add to your MCP client configuration:
 
@@ -78,6 +112,23 @@ Add to your MCP client configuration:
 
 **Claude Desktop:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
 **VS Code:** `.vscode/mcp.json` or user settings
+
+### Local development config
+
+If you are working from a local build instead of the published package, point your MCP client directly at the compiled entry point:
+
+```json
+{
+  "mcpServers": {
+    "mermaid": {
+      "command": "node",
+      "args": ["/absolute/path/to/mermaid-mcp-app/dist/server/index.js", "--stdio"]
+    }
+  }
+}
+```
+
+Using `node` directly avoids any `npx` version issues and does not require the package to be published to npm.
 
 ## Usage
 

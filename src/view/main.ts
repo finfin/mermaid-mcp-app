@@ -14,7 +14,6 @@ function lucideIcon(data: IconNode, size = 16): SVGSVGElement {
   svg.setAttribute("stroke-width", "2");
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
-  svg.style.pointerEvents = "none";
   for (const [tag, attrs] of data) {
     const el = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries(attrs)) {
@@ -428,7 +427,7 @@ async function renderDiagram(
   try {
     // Clear previous
     innerEl.innerHTML = "";
-    errorEl.style.display = "none";
+    errorEl.classList.remove("is-visible");
 
     // Each render needs a unique id
     renderCounter++;
@@ -436,9 +435,9 @@ async function renderDiagram(
     const { svg } = await mermaid.render(id, code);
     innerEl.innerHTML = svg;
 
-    diagramEl.style.display = "block";
+    diagramEl.classList.add("is-visible");
     toolbar.classList.add("visible");
-    loadingEl.style.display = "none";
+    loadingEl.classList.add("is-hidden");
 
     // Update source
     sourceEl.textContent = code;
@@ -456,12 +455,12 @@ async function renderDiagram(
       });
     });
   } catch (err: any) {
-    diagramEl.style.display = "none";
+    diagramEl.classList.remove("is-visible");
     toolbar.classList.remove("visible");
     errorEl.textContent =
       "⚠ Mermaid Syntax Error\n\n" + (err.message || String(err));
-    errorEl.style.display = "block";
-    loadingEl.style.display = "none";
+    errorEl.classList.add("is-visible");
+    loadingEl.classList.add("is-hidden");
   }
 }
 
@@ -507,12 +506,12 @@ document.getElementById("btn-copy-svg")!.addEventListener("click", () => {
 });
 
 toggleSourceBtn.addEventListener("click", () => {
-  modalEl.style.display = "flex";
+  modalEl.classList.add("is-visible");
   toggleSourceBtn.classList.add("active");
 });
 
 function closeModal() {
-  modalEl.style.display = "none";
+  modalEl.classList.remove("is-visible");
   toggleSourceBtn.classList.remove("active");
 }
 
@@ -521,7 +520,7 @@ modalEl.addEventListener("click", (e) => {
   if (e.target === modalEl) closeModal();
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalEl.style.display === "flex") closeModal();
+  if (e.key === "Escape" && modalEl.classList.contains("is-visible")) closeModal();
 });
 
 copySourceBtn.addEventListener("click", () => {

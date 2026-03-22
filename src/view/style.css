@@ -7,6 +7,15 @@
   padding: 0;
 }
 
+/* ─── State classes ──────────────────────────────────────────────────────── */
+#loading.is-hidden            { display: none; }
+#diagram-container.is-visible { display: block; }
+#error.is-visible             { display: block; }
+#source-modal.is-visible      { display: flex; }
+
+/* Lucide SVG icons inside buttons should not capture pointer events */
+button svg { pointer-events: none; }
+
 /* ─── Design tokens ─────────────────────────────────────────────────────── */
 :root {
   --bg: #ffffff;

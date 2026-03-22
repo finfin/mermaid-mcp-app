@@ -1,26 +1,77 @@
 # Mermaid MCP App
 
-An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interactive, inline UI inside Claude, ChatGPT, VS Code, and any MCP-compatible client.
+An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interactive, zoomable UI panels — inline inside Claude, VS Code, and any MCP-compatible client.
 
 ## Features
 
-- Renders all Mermaid diagram types: flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, gitgraph, mindmaps, timelines, and more
-- Theme support: `default`, `dark`, `forest`, `neutral`
-- Zoom in/out controls
-- Copy SVG to clipboard
-- View source code toggle
-- Auto-resize to fit content
-- Dark/light mode support
+### Diagram Types (13 supported)
+
+| Type | Keyword |
+| --- | --- |
+| Flowchart | `flowchart` |
+| Sequence Diagram | `sequenceDiagram` |
+| Class Diagram | `classDiagram` |
+| State Diagram | `stateDiagram-v2` |
+| ER Diagram | `erDiagram` |
+| Gantt Chart | `gantt` |
+| Pie Chart | `pie` |
+| Git Graph | `gitGraph` |
+| Mindmap | `mindmap` |
+| Timeline | `timeline` |
+| User Journey | `journey` |
+| Requirement Diagram | `requirementDiagram` |
+| Quadrant Chart | `quadrantChart` |
+
+### UI
+
+- **Pan & zoom** — mouse drag to pan, scroll wheel to zoom, pinch-to-zoom on touch
+- **Fit to container** — auto-fits diagram on render; reset button restores fit
+- **Copy SVG** — copies the rendered SVG to clipboard
+- **Source modal** — view and copy the Mermaid source code
+- **Toolbar tooltips** — hover labels on all toolbar buttons
+- **Theme support** — `dark` (auto-detected from system preference) and `light`
+
+## Installation
+
+Add to your MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "mermaid": {
+      "command": "npx",
+      "args": ["-y", "mermaid-mcp-app", "--stdio"]
+    }
+  }
+}
+```
+
+**Claude Desktop:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**VS Code:** `.vscode/mcp.json` or user settings
+
+## Usage
+
+Once configured, ask the LLM to draw a diagram:
+
+> "Draw a flowchart showing user authentication flow"
+
+> "Create a sequence diagram for an API request lifecycle"
+
+> "Render this mermaid diagram: `graph TD; A-->B; B-->C`"
+
+You can also specify a theme explicitly:
+
+> "Draw a class diagram with light theme"
 
 ## Architecture
 
-```
+```text
 ┌──────────────────┐     stdio/JSON-RPC     ┌──────────────┐
-│  Claude Desktop  │◄──────────────────────► │  MCP Server  │
-│  (Host)          │                         │  (index.ts)  │
+│   MCP Client     │◄──────────────────────►│  MCP Server  │
+│ (Claude/VS Code) │                         │  (index.ts)  │
 └────────┬─────────┘                         └──────────────┘
          │                                          │
-         │  postMessage                             │ reads dist/view/index.html
+         │  postMessage                             │ serves dist/view/index.html
          │  (tool-input / tool-result)              │ as ui:// resource
          ▼                                          │
 ┌──────────────────┐                                │
@@ -31,93 +82,44 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 ```
 
 The server registers:
-1. **`render-mermaid` tool** — accepts `code` (Mermaid syntax), `title`, and `theme` parameters
-2. **`ui://mermaid/view.html` resource** — the bundled single-file HTML containing Mermaid.js
 
-When the LLM calls `render-mermaid`, the host:
-1. Sends tool arguments to the iframe via `ontoolinput`
-2. Executes the tool on the server
-3. Delivers the result via `ontoolresult`
-
-The view picks up the Mermaid code from either event and renders the diagram.
-
-## Setup
-
-```bash
-npm install
-npm run build
-```
-
-## Claude Desktop Configuration
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "mermaid": {
-      "command": "node",
-      "args": ["<ABSOLUTE_PATH>/mermaid-mcp-app/dist/server/index.js", "--stdio"]
-    }
-  }
-}
-```
-
-Replace `<ABSOLUTE_PATH>` with the actual path, for example:
-
-```json
-{
-  "mcpServers": {
-    "mermaid": {
-      "command": "bash",
-      "args": ["-c", "cd ~/workspace/mermaid-mcp-app && npm run build >&2 && node dist/server/index.js --stdio"]
-    }
-  }
-}
-```
-
-## Usage
-
-Once configured, ask Claude something like:
-
-> "Draw a flowchart showing user authentication flow"
-
-or
-
-> "Create a sequence diagram for an API request lifecycle"
-
-or paste Mermaid code directly:
-
-> "Render this mermaid diagram: `graph TD; A-->B; B-->C; C-->A;`"
+1. **`render-mermaid` tool** — accepts `code` (Mermaid syntax), optional `title`, and optional `theme`
+2. **`ui://mermaid/view.html` resource** — the bundled single-file HTML with Mermaid.js embedded
 
 ## Development
 
 ```bash
-# Watch mode
-npm run dev
+# Install dependencies
+npm install
 
-# Build everything
+# Build (view + server)
 npm run build
 
-# Start server (stdio)
+# Watch mode (view only)
+npm run dev
+
+# Start server
 npm start
 ```
 
 ## Project Structure
 
-```
+```text
 mermaid-mcp-app/
 ├── src/
 │   ├── server/
-│   │   └── index.ts          # MCP server — registers tool + resource
+│   │   └── index.ts              # MCP server — registers tool + resource
 │   └── view/
-│       ├── index.html         # HTML shell
-│       └── main.ts            # App logic — mermaid rendering + MCP App connection
+│       ├── index.html            # HTML shell
+│       ├── style.css             # All UI styles
+│       ├── main.ts               # Rendering, pan/zoom, toolbar, MCP App connection
+│       ├── dark-theme.const.ts   # Mermaid themeVariables for dark mode
+│       └── light-theme.const.ts  # Mermaid themeVariables for light mode
 ├── dist/
 │   ├── server/
-│   │   └── index.js           # Compiled server
+│   │   └── index.js              # Compiled server
 │   └── view/
-│       └── index.html         # Single-file bundled HTML (Vite + vite-plugin-singlefile)
+│       └── index.html            # Single-file bundled HTML (Vite + vite-plugin-singlefile)
 ├── vite.config.ts
 ├── tsconfig.json
 └── package.json

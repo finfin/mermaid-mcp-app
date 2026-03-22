@@ -2,6 +2,7 @@ import mermaid from "mermaid";
 import { App } from "@modelcontextprotocol/ext-apps/app-with-deps";
 import { ZoomIn, ZoomOut, RotateCcw, Copy, Code2, ClipboardCopy, Check, ClipboardCheck, type IconNode } from "lucide";
 import { DARK_THEME_VARIABLES } from "./dark-theme.const";
+import { LIGHT_THEME_VARIABLES } from "./light-theme.const";
 
 // ─── Lucide icon helper ─────────────────────────────
 function lucideIcon(data: IconNode, size = 16): SVGSVGElement {
@@ -77,28 +78,29 @@ const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 
 
 function resolveTheme(requested?: string): string {
-  // If the user/LLM explicitly chose a theme other than "default", respect it
+  // "light" = explicitly force Mermaid's default (light) theme, skip auto-detect
+  if (requested === "light") return "default";
+  // Any other explicit theme (dark, forest, neutral) — respect it directly
   if (requested && requested !== "default") return requested;
-  // Otherwise, auto-pick based on system color scheme
+  // "default" or unset = auto-pick based on system color scheme
   return prefersDark.matches ? "dark" : "default";
 }
 
 function getMermaidConfig(theme: string) {
   const isDark = theme === "dark";
+  const isLight = theme === "default";
   return {
     startOnLoad: false,
-    theme: isDark ? ("base" as const) : (theme as any),
+    theme: (isDark || isLight) ? ("base" as const) : (theme as any),
     securityLevel: "loose" as const,
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    // Disable useMaxWidth so all diagram types output explicit pixel width/height
-    // instead of width="100%" (flowchart default), which would expand SVGs to fill
-    // the container and cause inconsistent sizing across diagram types.
     useMaxWidth: false,
     flowchart: { useMaxWidth: false },
     sequence: { useMaxWidth: false },
     gantt: { useMaxWidth: false },
     ...(isDark ? { themeVariables: DARK_THEME_VARIABLES } : {}),
+    ...(isLight ? { themeVariables: LIGHT_THEME_VARIABLES } : {}),
   };
 }
 

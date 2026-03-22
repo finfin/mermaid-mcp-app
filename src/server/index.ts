@@ -36,9 +36,9 @@ registerAppTool(
         .optional()
         .describe("Optional title for the diagram"),
       theme: z
-        .enum(["default", "dark", "forest", "neutral"])
+        .enum(["default", "light", "dark", "forest", "neutral"])
         .optional()
-        .describe("Mermaid theme to use (default, dark, forest, neutral)"),
+        .describe("Mermaid theme to use. 'default' auto-detects dark/light mode. 'light' forces the light theme. 'dark', 'forest', 'neutral' are explicit choices."),
     },
     _meta: {
       ui: {

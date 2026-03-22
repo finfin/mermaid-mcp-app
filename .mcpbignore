@@ -1,0 +1,24 @@
+# Everything except dist/, manifest.json, assets/
+src/
+tmp/
+node_modules/
+.git/
+.github/
+.vscode/
+
+# Config files not needed at runtime
+tsconfig.json
+vite.config.ts
+package.json
+package-lock.json
+.gitignore
+.markdownlint.json
+.mcpbignore
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+
+# Build artifacts
+*.mcpb

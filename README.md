@@ -95,8 +95,6 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 
 ## Installation
 
-> **Requirements:** Node.js >= 20. Older versions of npx (Node 14/16) do not support the `-y` flag and will silently fail. If you use `nvm`, run `nvm alias default 20` and restart your MCP client.
-
 Add to your MCP client configuration:
 
 ```json
@@ -110,34 +108,15 @@ Add to your MCP client configuration:
 }
 ```
 
-**Claude Desktop:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Claude Desktop:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 **VS Code:** `.vscode/mcp.json` or user settings
-
-### Local development config
-
-If you are working from a local build instead of the published package, point your MCP client directly at the compiled entry point:
-
-```json
-{
-  "mcpServers": {
-    "mermaid": {
-      "command": "node",
-      "args": ["/absolute/path/to/mermaid-mcp-app/dist/server/index.js", "--stdio"]
-    }
-  }
-}
-```
-
-Using `node` directly avoids any `npx` version issues and does not require the package to be published to npm.
 
 ## Usage
 
 Once configured, ask the LLM to draw a diagram:
 
 > "Draw a flowchart showing user authentication flow"
-
 > "Create a sequence diagram for an API request lifecycle"
-
 > "Render this mermaid diagram: `graph TD; A-->B; B-->C`"
 
 You can also specify a theme explicitly:

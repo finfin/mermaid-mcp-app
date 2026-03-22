@@ -1,0 +1,52 @@
+{
+  "manifest_version": "0.2",
+  "name": "mermaid-mcp-app",
+  "display_name": "Mermaid Diagram Renderer",
+  "version": "0.2.0",
+  "description": "Render Mermaid diagrams as interactive, zoomable UI panels inside Claude Desktop.",
+  "long_description": "An MCP App that renders Mermaid diagrams as interactive, zoomable UI panels — inline inside Claude Desktop. Supports 13 diagram types: flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, git graphs, mindmaps, timelines, user journeys, requirement diagrams, and quadrant charts. Features pan & zoom, fit-to-container, copy SVG, source code viewer, and automatic dark/light theme detection.",
+  "author": {
+    "name": "mermaid-mcp-app contributors"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/finfin/mermaid-mcp-app"
+  },
+  "icon": "assets/images/flowchart.png",
+  "screenshots": [
+    "assets/images/flowchart.png",
+    "assets/images/sequence-diagram.png",
+    "assets/images/class-diagram.png",
+    "assets/images/mindmap.png"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/server/index.js", "--stdio"]
+    }
+  },
+  "tools": [
+    {
+      "name": "render-mermaid",
+      "description": "Render a Mermaid diagram from Mermaid syntax. Supports flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, gitgraph, mindmaps, timelines, and more."
+    }
+  ],
+  "keywords": [
+    "mermaid",
+    "diagram",
+    "visualization",
+    "mcp-app",
+    "flowchart",
+    "sequence-diagram"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

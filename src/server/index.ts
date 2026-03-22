@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-
-// Fail fast with a clear message if running on an unsupported Node.js version.
-// Older npx (Node 14) silently drops the -y flag and prints its own help text,
-// so the server process never actually starts. Require >= 20 explicitly.
-const [major] = process.versions.node.split(".").map(Number);
-if (major < 20) {
-  process.stderr.write(
-    `[mermaid-mcp-app] ERROR: Node.js >= 20 is required (current: v${process.versions.node}).\n` +
-    `  If you use nvm, run: nvm use 20 (or set a default with nvm alias default 20)\n` +
-    `  Then restart your MCP client so it picks up the new PATH.\n`,
-  );
-  process.exit(1);
-}
-
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {

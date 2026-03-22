@@ -143,29 +143,6 @@ You can also specify a theme explicitly:
 
 > "Draw a class diagram with light theme"
 
-## Architecture
-
-```text
-┌──────────────────┐     stdio/JSON-RPC     ┌──────────────┐
-│   MCP Client     │◄──────────────────────►│  MCP Server  │
-│ (Claude/VS Code) │                         │  (index.ts)  │
-└────────┬─────────┘                         └──────────────┘
-         │                                          │
-         │  postMessage                             │ serves dist/view/index.html
-         │  (tool-input / tool-result)              │ as ui:// resource
-         ▼                                          │
-┌──────────────────┐                                │
-│  Sandboxed       │◄───────────────────────────────┘
-│  iframe          │
-│  (Mermaid View)  │
-└──────────────────┘
-```
-
-The server registers:
-
-1. **`render-mermaid` tool** — accepts `code` (Mermaid syntax), optional `title`, and optional `theme`
-2. **`ui://mermaid/view.html` resource** — the bundled single-file HTML with Mermaid.js embedded
-
 ## Development
 
 ```bash
@@ -180,27 +157,4 @@ npm run dev
 
 # Start server
 npm start
-```
-
-## Project Structure
-
-```text
-mermaid-mcp-app/
-├── src/
-│   ├── server/
-│   │   └── index.ts              # MCP server — registers tool + resource
-│   └── view/
-│       ├── index.html            # HTML shell
-│       ├── style.css             # All UI styles
-│       ├── main.ts               # Rendering, pan/zoom, toolbar, MCP App connection
-│       ├── dark-theme.const.ts   # Mermaid themeVariables for dark mode
-│       └── light-theme.const.ts  # Mermaid themeVariables for light mode
-├── dist/
-│   ├── server/
-│   │   └── index.js              # Compiled server
-│   └── view/
-│       └── index.html            # Single-file bundled HTML (Vite + vite-plugin-singlefile)
-├── vite.config.ts
-├── tsconfig.json
-└── package.json
 ```

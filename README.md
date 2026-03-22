@@ -89,13 +89,21 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 - **Pan & zoom** — mouse drag to pan, scroll wheel to zoom, pinch-to-zoom on touch
 - **Fit to container** — auto-fits diagram on render; reset button restores fit
 - **Copy SVG** — copies the rendered SVG to clipboard
-- **Source modal** — view and copy the Mermaid source code
+- **Split-view source editor** — inline editable panel with live re-render (400ms debounce)
+- **Draggable split divider** — resize editor / diagram panels (mouse + touch)
+- **Vertical / horizontal layout toggle**
 - **Toolbar tooltips** — hover labels on all toolbar buttons
 - **Theme support** — `dark` (auto-detected from system preference) and `light`
 
 ## Installation
 
-Add to your MCP client configuration:
+### Claude Desktop — Extension (recommended)
+
+Download the latest `.mcpb` from [GitHub Releases](https://github.com/finfin/mermaid-mcp-app/releases) and double-click to install. No terminal or configuration needed.
+
+### Claude Desktop — Manual
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -108,8 +116,20 @@ Add to your MCP client configuration:
 }
 ```
 
-**Claude Desktop:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-**VS Code:** `.vscode/mcp.json` or user settings
+### VS Code
+
+Add to `.vscode/mcp.json` or user settings:
+
+```json
+{
+  "mcpServers": {
+    "mermaid": {
+      "command": "npx",
+      "args": ["-y", "mermaid-mcp-app", "--stdio"]
+    }
+  }
+}
+```
 
 ## Usage
 

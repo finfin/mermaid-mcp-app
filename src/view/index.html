@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mermaid Diagram Viewer</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a2e;
+      --surface: #f8f9fa;
+      --border: #e2e8f0;
+      --accent: #6366f1;
+      --accent-light: #eef2ff;
+      --muted: #94a3b8;
+      --error-bg: #fef2f2;
+      --error-fg: #dc2626;
+      --error-border: #fecaca;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --fg: #e2e8f0;
+        --surface: #1e293b;
+        --border: #334155;
+        --accent: #818cf8;
+        --accent-light: #1e1b4b;
+        --muted: #64748b;
+        --error-bg: #450a0a;
+        --error-fg: #fca5a5;
+        --error-border: #7f1d1d;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    body {
+      padding: 16px;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--fg);
+      text-align: center;
+    }
+
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #error {
+      display: none;
+      background: var(--error-bg);
+      color: var(--error-fg);
+      border: 1px solid var(--error-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      width: 100%;
+      max-width: 600px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    #diagram-container {
+      display: none;
+      width: 100%;
+      flex: 1;
+      min-height: max(70vh, 300px);
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      cursor: grab;
+      position: relative;
+      touch-action: none;
+    }
+
+    #diagram-container.grabbing {
+      cursor: grabbing;
+    }
+
+    #diagram-inner {
+      transform-origin: 0 0;
+      display: inline-block;
+      padding: 24px;
+    }
+
+    #diagram-inner svg {
+      display: block;
+      max-width: none;
+    }
+
+    .toolbar {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .toolbar.visible {
+      display: flex;
+    }
+
+    .toolbar button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--fg);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toolbar button:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .toolbar button:active {
+      transform: scale(0.94);
+    }
+
+    .toolbar button.active {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Custom tooltip — appears to the left of each toolbar button */
+    .toolbar button::before {
+      content: attr(title);
+      position: absolute;
+      right: calc(100% + 10px);
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 4px 10px;
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.72rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 20;
+    }
+    .toolbar button:hover::before {
+      opacity: 1;
+    }
+
+    /* Source modal */
+    #source-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #source-modal-dialog {
+      position: relative;
+      width: 100%;
+      max-width: 680px;
+      max-height: 80vh;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #source-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    #btn-close-modal {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    #btn-close-modal:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    #source-code {
+      flex: 1;
+      overflow: auto;
+      margin: 0;
+      padding: 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: var(--fg);
+      white-space: pre;
+      word-break: normal;
+    }
+
+    #source-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #btn-copy-source {
+      display: flex;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--fg);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #btn-copy-source:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    #btn-copy-source:active {
+      transform: scale(0.94);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="loading">
+      <div class="spinner"></div>
+      <span>Waiting for Mermaid diagram…</span>
+    </div>
+
+    <div id="diagram-container">
+      <div id="diagram-inner"></div>
+      <div class="toolbar" id="toolbar">
+        <button id="btn-zoom-in" title="Zoom In"></button>
+        <button id="btn-zoom-out" title="Zoom Out"></button>
+        <button id="btn-reset" title="Reset View"></button>
+        <button id="btn-copy-svg" title="Copy SVG"></button>
+        <button id="toggle-source" title="Source"></button>
+      </div>
+    </div>
+
+    <div id="error"></div>
+  </div>
+
+  <!-- Source modal (outside #app to avoid overflow clipping) -->
+  <div id="source-modal">
+    <div id="source-modal-dialog">
+      <div id="source-modal-header">
+        <span>Mermaid Source</span>
+        <button id="btn-close-modal" title="Close">✕</button>
+      </div>
+      <pre id="source-code"></pre>
+      <div id="source-modal-footer">
+        <button id="btn-copy-source" title="Copy Source"></button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

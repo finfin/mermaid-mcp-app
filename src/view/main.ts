@@ -215,6 +215,24 @@ const DARK_THEME_VARIABLES = {
 
   // User Journey face/head fill (default is #FFF8DC cornsilk — too light in dark mode)
   faceColor: "#1e293b",
+
+  // Gantt chart task bars
+  // Mermaid default `doneTaskBkgColor` is light gray (#d3d3d3) — unreadable in dark mode.
+  // Make all task bar variants dark so `taskTextColor` (white) is legible everywhere.
+  taskBkgColor:         "#1d4ed8",   // active/default task bar — blue
+  doneTaskBkgColor:     "#334155",   // :done tasks — dark slate
+  critTaskBkgColor:     "#b91c1c",   // :crit tasks — dark red
+  activeTaskBkgColor:   "#0369a1",   // today-active highlight
+  taskBorderColor:      "#3b82f6",
+  doneTaskBorderColor:  "#64748b",
+  critTaskBorderColor:  "#ef4444",
+  activeTaskBorderColor:"#0284c7",
+  // Text: inside bars and outside bars both use light values on the dark backgrounds
+  taskTextColor:        "#ffffff",   // text inside task bars
+  taskTextLightColor:   "#1e293b",   // text on accidentally-light bars (dark text for contrast)
+  taskTextOutsideColor: "#e2e8f0",   // text label outside the bar
+  taskTextClickableColor: "#bfdbfe", // clickable task text — light blue
+  todayLineColor:       "#f59e0b",   // amber today-marker line
 };
 
 function resolveTheme(requested?: string): string {
@@ -478,12 +496,12 @@ document.getElementById("btn-reset")!.addEventListener("click", () => {
 });
 
 document.getElementById("btn-copy-svg")!.addEventListener("click", () => {
-  const svg = diagramEl.innerHTML;
   const btn = document.getElementById("btn-copy-svg")!;
-  navigator.clipboard.writeText(svg).then(
-    () => {
-      flashIcon(btn, Check, Copy);
-    },
+  const svgEl = innerEl.querySelector("svg");
+  if (!svgEl) return;
+  const svgStr = new XMLSerializer().serializeToString(svgEl);
+  navigator.clipboard.writeText(svgStr).then(
+    () => flashIcon(btn, Check, Copy),
     () => {},
   );
 });

@@ -13,32 +13,38 @@
       <span>Waiting for Mermaid diagram…</span>
     </div>
 
-    <div id="diagram-container">
-      <div id="diagram-inner"></div>
-      <div class="toolbar" id="toolbar">
-        <button id="btn-zoom-in" title="Zoom In"></button>
-        <button id="btn-zoom-out" title="Zoom Out"></button>
-        <button id="btn-reset" title="Reset View"></button>
-        <button id="btn-copy-svg" title="Copy SVG"></button>
-        <button id="toggle-source" title="Source"></button>
+    <div id="main-area">
+      <!-- Editor panel (shown when source is toggled) -->
+      <div id="editor-panel">
+        <div id="editor-header">
+          <span>Mermaid Source</span>
+          <div id="editor-actions">
+            <button id="btn-copy-source" title="Copy Source"></button>
+            <button id="btn-toggle-layout" title="Toggle Layout"></button>
+          </div>
+        </div>
+        <textarea id="source-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+      </div>
+
+      <!-- Draggable divider -->
+      <div id="split-divider">
+        <div id="split-divider-handle"></div>
+      </div>
+
+      <!-- Diagram panel -->
+      <div id="diagram-container">
+        <div id="diagram-inner"></div>
+        <div class="toolbar" id="toolbar">
+          <button id="btn-zoom-in" title="Zoom In"></button>
+          <button id="btn-zoom-out" title="Zoom Out"></button>
+          <button id="btn-reset" title="Reset View"></button>
+          <button id="btn-copy-svg" title="Copy SVG"></button>
+          <button id="toggle-source" title="Source"></button>
+        </div>
       </div>
     </div>
 
     <div id="error"></div>
-  </div>
-
-  <!-- Source modal (outside #app to avoid overflow clipping) -->
-  <div id="source-modal">
-    <div id="source-modal-dialog">
-      <div id="source-modal-header">
-        <span>Mermaid Source</span>
-        <button id="btn-close-modal" title="Close">✕</button>
-      </div>
-      <pre id="source-code"></pre>
-      <div id="source-modal-footer">
-        <button id="btn-copy-source" title="Copy Source"></button>
-      </div>
-    </div>
   </div>
 
   <script type="module" src="./main.ts"></script>

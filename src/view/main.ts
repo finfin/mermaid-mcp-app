@@ -1,6 +1,6 @@
 import mermaid from "mermaid";
 import { App } from "@modelcontextprotocol/ext-apps/app-with-deps";
-import { ZoomIn, ZoomOut, RotateCcw, Copy, Code2, ClipboardCopy, Check, ClipboardCheck, type IconNode } from "lucide";
+import { ZoomIn, ZoomOut, RotateCcw, Copy, Code2, ClipboardCopy, Check, ClipboardCheck, Columns2, Rows2, type IconNode } from "lucide";
 import { DARK_THEME_VARIABLES } from "./dark-theme.const";
 import { LIGHT_THEME_VARIABLES } from "./light-theme.const";
 
@@ -40,6 +40,7 @@ function flashIcon(btn: Element, next: IconNode, original: IconNode, ms = 5000) 
 
 // ─── State ──────────────────────────────────────────────────
 let renderCounter = 0;
+let isFirstRender = true;
 
 // Pan & Zoom state
 let scale = 1;
@@ -55,15 +56,17 @@ const ZOOM_SENSITIVITY = 0.002;
 
 // ─── DOM refs ───────────────────────────────────────────────
 const loadingEl = document.getElementById("loading")!;
+const mainArea = document.getElementById("main-area")!;
 const diagramEl = document.getElementById("diagram-container")!;
 const innerEl = document.getElementById("diagram-inner")!;
 const errorEl = document.getElementById("error")!;
 const toolbar = document.getElementById("toolbar")!;
-const sourceEl = document.getElementById("source-code")!;
 const toggleSourceBtn = document.getElementById("toggle-source")!;
+const editorPanel = document.getElementById("editor-panel")!;
+const sourceEditor = document.getElementById("source-editor") as HTMLTextAreaElement;
 const copySourceBtn = document.getElementById("btn-copy-source") as HTMLButtonElement;
-const modalEl = document.getElementById("source-modal") as HTMLElement;
-const closeModalBtn = document.getElementById("btn-close-modal") as HTMLButtonElement;
+const toggleLayoutBtn = document.getElementById("btn-toggle-layout") as HTMLButtonElement;
+const splitDivider = document.getElementById("split-divider")!;
 
 // ─── Populate toolbar icons ──────────────────────────────────
 document.getElementById("btn-zoom-in")!.appendChild(lucideIcon(ZoomIn));
@@ -72,6 +75,7 @@ document.getElementById("btn-reset")!.appendChild(lucideIcon(RotateCcw));
 document.getElementById("btn-copy-svg")!.appendChild(lucideIcon(Copy));
 toggleSourceBtn.appendChild(lucideIcon(Code2));
 copySourceBtn.appendChild(lucideIcon(ClipboardCopy));
+toggleLayoutBtn.appendChild(lucideIcon(Rows2));
 
 // ─── Dark mode detection ────────────────────────────────────
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -258,12 +262,49 @@ diagramEl.addEventListener("touchend", () => {
   lastTouchDist = 0;
 });
 
+// ─── Layout stability helper ────────────────────────────────
+/**
+ * Wait until `targets` stop resizing for `stableMs` consecutive milliseconds.
+ * Resolves once layout is stable, or after `timeoutMs` as a fallback.
+ */
+function waitForStableLayout(
+  targets: Element[],
+  stableMs = 200,
+  timeoutMs = 2000,
+): Promise<void> {
+  return new Promise((resolve) => {
+    let debounce: ReturnType<typeof setTimeout>;
+
+    const done = () => {
+      observer.disconnect();
+      clearTimeout(fallback);
+      clearTimeout(debounce);
+      resolve();
+    };
+
+    const observer = new ResizeObserver(() => {
+      clearTimeout(debounce);
+      debounce = setTimeout(done, stableMs);
+    });
+
+    for (const el of targets) observer.observe(el);
+
+    // Kick-start: if no resize events fire at all, resolve after stableMs
+    debounce = setTimeout(done, stableMs);
+    // Hard upper-bound
+    const fallback = setTimeout(done, timeoutMs);
+  });
+}
+
 // ─── Render helper ──────────────────────────────────────────
 async function renderDiagram(
   code: string,
   theme = "default",
   title = "",
 ) {
+  currentTheme = theme;
+  currentTitle = title;
+
   // Re-init mermaid with the chosen theme (auto-detect dark mode)
   const effectiveTheme = resolveTheme(theme);
   mermaid.initialize(getMermaidConfig(effectiveTheme) as any);
@@ -283,21 +324,27 @@ async function renderDiagram(
     toolbar.classList.add("visible");
     loadingEl.classList.add("is-hidden");
 
-    // Update source
-    sourceEl.textContent = code;
+    // Update source editor (only if user isn't actively editing)
+    if (!sourceEditorDirty) {
+      sourceEditor.value = code;
+    }
 
-    // Fit diagram to view.
-    // resetView() first so scale=1 for accurate measurement.
-    // Double-rAF: first frame applies display:block + min-height layout,
-    // second frame gives us stable container dimensions to fit against.
-    // Extra 300ms timeout catches slow-rendering diagrams (mindmap, requirement, etc.)
-    resetView();
-    requestAnimationFrame(() => {
+    if (isFirstRender) {
+      // Initial load: wait for fonts & container size to stabilise before fitting.
+      isFirstRender = false;
+      await document.fonts.ready;
+      await waitForStableLayout([diagramEl, innerEl]);
+      resetView();
+      fitToContainer();
+    } else {
+      // Subsequent renders: lightweight double-rAF is enough.
+      resetView();
       requestAnimationFrame(() => {
-        fitToContainer();
-        setTimeout(fitToContainer, 300);
+        requestAnimationFrame(() => {
+          fitToContainer();
+        });
       });
-    });
+    }
   } catch (err: any) {
     diagramEl.classList.remove("is-visible");
     toolbar.classList.remove("visible");
@@ -349,26 +396,145 @@ document.getElementById("btn-copy-svg")!.addEventListener("click", () => {
   );
 });
 
+// ─── Source editor state ─────────────────────────────────────
+let sourceEditorDirty = false; // true once user starts editing
+let currentTheme = "default";
+let currentTitle = "";
+let editorVisible = false;
+let isHorizontalLayout = false;
+let reRenderTimer: ReturnType<typeof setTimeout> | null = null;
+const RE_RENDER_DELAY = 400; // ms debounce
+
 toggleSourceBtn.addEventListener("click", () => {
-  modalEl.classList.add("is-visible");
-  toggleSourceBtn.classList.add("active");
+  editorVisible = !editorVisible;
+  if (editorVisible) {
+    editorPanel.classList.add("is-visible");
+    splitDivider.classList.add("is-visible");
+    toggleSourceBtn.classList.add("active");
+  } else {
+    editorPanel.classList.remove("is-visible");
+    splitDivider.classList.remove("is-visible");
+    toggleSourceBtn.classList.remove("active");
+  }
+  // Reset view after layout change
+  resetView();
+  requestAnimationFrame(() => fitToContainer());
 });
 
-function closeModal() {
-  modalEl.classList.remove("is-visible");
-  toggleSourceBtn.classList.remove("active");
-}
-
-closeModalBtn.addEventListener("click", closeModal);
-modalEl.addEventListener("click", (e) => {
-  if (e.target === modalEl) closeModal();
+// ── Live re-render on edit ──
+sourceEditor.addEventListener("input", () => {
+  sourceEditorDirty = true;
+  if (reRenderTimer) clearTimeout(reRenderTimer);
+  reRenderTimer = setTimeout(() => {
+    const code = sourceEditor.value.trim();
+    if (code) {
+      renderDiagram(code, currentTheme, currentTitle);
+    }
+  }, RE_RENDER_DELAY);
 });
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalEl.classList.contains("is-visible")) closeModal();
+
+// Allow Tab key to insert tab in textarea
+sourceEditor.addEventListener("keydown", (e: KeyboardEvent) => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const start = sourceEditor.selectionStart;
+    const end = sourceEditor.selectionEnd;
+    sourceEditor.value = sourceEditor.value.substring(0, start) + "  " + sourceEditor.value.substring(end);
+    sourceEditor.selectionStart = sourceEditor.selectionEnd = start + 2;
+    // Trigger re-render
+    sourceEditor.dispatchEvent(new Event("input"));
+  }
+});
+
+// ── Toggle layout (vertical ↔ horizontal) ──
+toggleLayoutBtn.addEventListener("click", () => {
+  isHorizontalLayout = !isHorizontalLayout;
+  // Clear any inline size from the previous layout direction
+  editorPanel.style.width = "";
+  editorPanel.style.height = "";
+  if (isHorizontalLayout) {
+    mainArea.classList.add("layout-horizontal");
+  } else {
+    mainArea.classList.remove("layout-horizontal");
+  }
+  // Swap icon
+  const svg = toggleLayoutBtn.querySelector("svg");
+  if (svg) svg.remove();
+  toggleLayoutBtn.appendChild(lucideIcon(isHorizontalLayout ? Columns2 : Rows2));
+  // Reset view after layout change
+  resetView();
+  requestAnimationFrame(() => fitToContainer());
+});
+
+// ── Draggable split divider ──
+let isDraggingSplit = false;
+
+splitDivider.addEventListener("mousedown", (e: MouseEvent) => {
+  e.preventDefault();
+  isDraggingSplit = true;
+  splitDivider.classList.add("is-dragging");
+  document.body.style.cursor = isHorizontalLayout ? "col-resize" : "row-resize";
+  document.body.style.userSelect = "none";
+});
+
+window.addEventListener("mousemove", (e: MouseEvent) => {
+  if (!isDraggingSplit) return;
+  const mainRect = mainArea.getBoundingClientRect();
+
+  if (isHorizontalLayout) {
+    const x = e.clientX - mainRect.left;
+    const ratio = Math.max(0.1, Math.min(0.9, x / mainRect.width));
+    editorPanel.style.width = `${ratio * 100}%`;
+    editorPanel.style.height = "";
+  } else {
+    const y = e.clientY - mainRect.top;
+    const ratio = Math.max(0.1, Math.min(0.9, y / mainRect.height));
+    editorPanel.style.height = `${ratio * 100}%`;
+    editorPanel.style.width = "";
+  }
+});
+
+window.addEventListener("mouseup", () => {
+  if (!isDraggingSplit) return;
+  isDraggingSplit = false;
+  splitDivider.classList.remove("is-dragging");
+  document.body.style.cursor = "";
+  document.body.style.userSelect = "";
+});
+
+// Touch support for divider
+splitDivider.addEventListener("touchstart", (e: TouchEvent) => {
+  e.preventDefault();
+  isDraggingSplit = true;
+  splitDivider.classList.add("is-dragging");
+}, { passive: false });
+
+window.addEventListener("touchmove", (e: TouchEvent) => {
+  if (!isDraggingSplit) return;
+  const touch = e.touches[0];
+  const mainRect = mainArea.getBoundingClientRect();
+
+  if (isHorizontalLayout) {
+    const x = touch.clientX - mainRect.left;
+    const ratio = Math.max(0.1, Math.min(0.9, x / mainRect.width));
+    editorPanel.style.width = `${ratio * 100}%`;
+    editorPanel.style.height = "";
+  } else {
+    const y = touch.clientY - mainRect.top;
+    const ratio = Math.max(0.1, Math.min(0.9, y / mainRect.height));
+    editorPanel.style.height = `${ratio * 100}%`;
+    editorPanel.style.width = "";
+  }
+}, { passive: false });
+
+window.addEventListener("touchend", () => {
+  if (!isDraggingSplit) return;
+  isDraggingSplit = false;
+  splitDivider.classList.remove("is-dragging");
 });
 
 copySourceBtn.addEventListener("click", () => {
-  navigator.clipboard.writeText(sourceEl.textContent ?? "").then(
+  navigator.clipboard.writeText(sourceEditor.value ?? "").then(
     () => { flashIcon(copySourceBtn, ClipboardCheck, ClipboardCopy); },
     () => {},
   );

@@ -1,6 +1,6 @@
 {
   "name": "mermaid-mcp-app",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP App that renders Mermaid diagrams as interactive UI in Claude, ChatGPT, VS Code and other MCP clients",
   "type": "module",
   "main": "dist/server/index.js",

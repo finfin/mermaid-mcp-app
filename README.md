@@ -22,6 +22,36 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 | Requirement Diagram | `requirementDiagram` |
 | Quadrant Chart | `quadrantChart` |
 
+### Gallery
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/images/flowchart.png" width="220"/><br/><sub>Flowchart</sub></td>
+    <td align="center"><img src="assets/images/sequence-diagram.png" width="220"/><br/><sub>Sequence Diagram</sub></td>
+    <td align="center"><img src="assets/images/class-diagram.png" width="220"/><br/><sub>Class Diagram</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/images/state-diagram.png" width="220"/><br/><sub>State Diagram</sub></td>
+    <td align="center"><img src="assets/images/er-diagram.png" width="220"/><br/><sub>ER Diagram</sub></td>
+    <td align="center"><img src="assets/images/gantt-chart.png" width="220"/><br/><sub>Gantt Chart</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/images/pie-chart.png" width="220"/><br/><sub>Pie Chart</sub></td>
+    <td align="center"><img src="assets/images/git-graph.png" width="220"/><br/><sub>Git Graph</sub></td>
+    <td align="center"><img src="assets/images/mindmap.png" width="220"/><br/><sub>Mindmap</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/images/timeline.png" width="220"/><br/><sub>Timeline</sub></td>
+    <td align="center"><img src="assets/images/user-journey.png" width="220"/><br/><sub>User Journey</sub></td>
+    <td align="center"><img src="assets/images/requirement-diagram.png" width="220"/><br/><sub>Requirement Diagram</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/images/quadrant-chart.png" width="220"/><br/><sub>Quadrant Chart</sub></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
 ### UI
 
 - **Pan & zoom** — mouse drag to pan, scroll wheel to zoom, pinch-to-zoom on touch

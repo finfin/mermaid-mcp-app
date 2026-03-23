@@ -14,23 +14,6 @@
     </div>
 
     <div id="main-area">
-      <!-- Editor panel (shown when source is toggled) -->
-      <div id="editor-panel">
-        <div id="editor-header">
-          <span>Mermaid Source</span>
-          <div id="editor-actions">
-            <button id="btn-copy-source" title="Copy Source"></button>
-            <button id="btn-toggle-layout" title="Toggle Layout"></button>
-          </div>
-        </div>
-        <textarea id="source-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-      </div>
-
-      <!-- Draggable divider -->
-      <div id="split-divider">
-        <div id="split-divider-handle"></div>
-      </div>
-
       <!-- Diagram panel -->
       <div id="diagram-container">
         <div id="diagram-inner"></div>
@@ -39,9 +22,36 @@
           <button id="btn-zoom-out" title="Zoom Out"></button>
           <button id="btn-reset" title="Reset View"></button>
           <button id="btn-copy-svg" title="Copy SVG"></button>
-          <button id="toggle-source" title="Source"></button>
         </div>
       </div>
+
+      <!-- Draggable divider -->
+      <div id="split-divider" class="is-visible">
+        <div id="split-divider-handle"></div>
+      </div>
+
+      <!-- Editor panel (source) -->
+      <div id="editor-panel" class="is-visible">
+        <div id="editor-collapsed-bar">
+          <span>Source</span>
+          <div id="collapsed-actions">
+            <button id="btn-copy-source-c" title="Copy Source"></button>
+            <button id="btn-send-to-ai-c" title="Send to AI (⌘↵)"></button>
+            <button id="btn-vertical-split" title="Vertical Split"></button>
+            <button id="btn-horizontal-split" title="Horizontal Split"></button>
+          </div>
+        </div>
+        <div id="editor-body">
+          <div id="editor-actions">
+            <button id="btn-copy-source" title="Copy Source"></button>
+            <button id="btn-send-to-ai" title="Send to AI (⌘↵)"></button>
+            <button id="btn-toggle-layout" title="Horizontal Split"></button>
+            <button id="btn-minimize-editor" title="Minimize"></button>
+          </div>
+          <textarea id="source-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+    </div>
     </div>
 
     <div id="error"></div>

@@ -18,6 +18,36 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
+// ─── In-memory draft store (survives across iframe re-renders) ───
+// Keyed by draftId (hash of original code) so multiple diagrams don't collide.
+const drafts = new Map<string, string>();
+
+// Internal tools for the View to save/restore user edits across re-renders.
+// These are NOT intended for LLM use — the View calls them via callServerTool.
+server.tool(
+  "save-mermaid-draft",
+  "Save the user's edited Mermaid source (internal, used by the viewer)",
+  { draftId: z.string(), code: z.string() },
+  async ({ draftId, code }) => {
+    drafts.set(draftId, code);
+    return { content: [{ type: "text" as const, text: "ok" }] };
+  },
+);
+
+server.tool(
+  "get-mermaid-draft",
+  "Retrieve the user's last edited Mermaid source (internal, used by the viewer)",
+  { draftId: z.string() },
+  async ({ draftId }) => {
+    return {
+      content: [{
+        type: "text" as const,
+        text: drafts.get(draftId) ?? "",
+      }],
+    };
+  },
+);
+
 // Tool: render-mermaid
 // Accepts Mermaid syntax and sends it to the UI for rendering
 registerAppTool(

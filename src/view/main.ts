@@ -1,6 +1,6 @@
 import mermaid from "mermaid";
 import { App } from "@modelcontextprotocol/ext-apps/app-with-deps";
-import { ZoomIn, ZoomOut, RotateCcw, Copy, Code2, ClipboardCopy, Check, ClipboardCheck, Columns2, Rows2, type IconNode } from "lucide";
+import { ZoomIn, ZoomOut, RotateCcw, Copy, Code2, ClipboardCopy, Check, ClipboardCheck, Columns2, Rows2, SendHorizontal, Minimize2, Maximize2, type IconNode } from "lucide";
 import { DARK_THEME_VARIABLES } from "./dark-theme.const";
 import { LIGHT_THEME_VARIABLES } from "./light-theme.const";
 
@@ -38,6 +38,9 @@ function flashIcon(btn: Element, next: IconNode, original: IconNode, ms = 5000) 
   }, ms);
 }
 
+// ─── MCP App instance (module-level so event handlers can reach it) ───────
+let mcpApp: App | null = null;
+
 // ─── State ──────────────────────────────────────────────────
 let renderCounter = 0;
 let isFirstRender = true;
@@ -61,11 +64,18 @@ const diagramEl = document.getElementById("diagram-container")!;
 const innerEl = document.getElementById("diagram-inner")!;
 const errorEl = document.getElementById("error")!;
 const toolbar = document.getElementById("toolbar")!;
-const toggleSourceBtn = document.getElementById("toggle-source")!;
 const editorPanel = document.getElementById("editor-panel")!;
 const sourceEditor = document.getElementById("source-editor") as HTMLTextAreaElement;
 const copySourceBtn = document.getElementById("btn-copy-source") as HTMLButtonElement;
 const toggleLayoutBtn = document.getElementById("btn-toggle-layout") as HTMLButtonElement;
+const sendToAiBtn = document.getElementById("btn-send-to-ai") as HTMLButtonElement;
+const minimizeEditorBtn = document.getElementById("btn-minimize-editor") as HTMLButtonElement;
+const verticalSplitBtn = document.getElementById("btn-vertical-split") as HTMLButtonElement;
+const horizontalSplitBtn = document.getElementById("btn-horizontal-split") as HTMLButtonElement;
+const copySourceBtnC = document.getElementById("btn-copy-source-c") as HTMLButtonElement;
+const sendToAiBtnC = document.getElementById("btn-send-to-ai-c") as HTMLButtonElement;
+const editorBody = document.getElementById("editor-body")!;
+const collapsedBar = document.getElementById("editor-collapsed-bar")!;
 const splitDivider = document.getElementById("split-divider")!;
 
 // ─── Populate toolbar icons ──────────────────────────────────
@@ -73,9 +83,15 @@ document.getElementById("btn-zoom-in")!.appendChild(lucideIcon(ZoomIn));
 document.getElementById("btn-zoom-out")!.appendChild(lucideIcon(ZoomOut));
 document.getElementById("btn-reset")!.appendChild(lucideIcon(RotateCcw));
 document.getElementById("btn-copy-svg")!.appendChild(lucideIcon(Copy));
-toggleSourceBtn.appendChild(lucideIcon(Code2));
 copySourceBtn.appendChild(lucideIcon(ClipboardCopy));
-toggleLayoutBtn.appendChild(lucideIcon(Rows2));
+toggleLayoutBtn.appendChild(lucideIcon(Columns2));
+toggleLayoutBtn.title = "Horizontal Split";
+sendToAiBtn.appendChild(lucideIcon(SendHorizontal));
+minimizeEditorBtn.appendChild(lucideIcon(Minimize2));
+verticalSplitBtn.appendChild(lucideIcon(Columns2));
+horizontalSplitBtn.appendChild(lucideIcon(Rows2));
+copySourceBtnC.appendChild(lucideIcon(ClipboardCopy));
+sendToAiBtnC.appendChild(lucideIcon(SendHorizontal));
 
 // ─── Dark mode detection ────────────────────────────────────
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -400,26 +416,81 @@ document.getElementById("btn-copy-svg")!.addEventListener("click", () => {
 let sourceEditorDirty = false; // true once user starts editing
 let currentTheme = "default";
 let currentTitle = "";
-let editorVisible = false;
+let editorVisible = true;
+let editorMinimized = false;
 let isHorizontalLayout = false;
 let reRenderTimer: ReturnType<typeof setTimeout> | null = null;
+let draftSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let draftId: string | null = null; // hash of original code, identifies this diagram instance
 const RE_RENDER_DELAY = 400; // ms debounce
+const DRAFT_SAVE_DELAY = 800; // ms debounce for saving draft to server
 
-toggleSourceBtn.addEventListener("click", () => {
-  editorVisible = !editorVisible;
-  if (editorVisible) {
-    editorPanel.classList.add("is-visible");
-    splitDivider.classList.add("is-visible");
-    toggleSourceBtn.classList.add("active");
-  } else {
-    editorPanel.classList.remove("is-visible");
-    splitDivider.classList.remove("is-visible");
-    toggleSourceBtn.classList.remove("active");
+// Simple string hash for draft keying (FNV-1a inspired)
+function hashCode(str: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
   }
-  // Reset view after layout change
+  return (h >>> 0).toString(36);
+}
+
+// ── Minimize / expand editor ──
+function minimizeEditor() {
+  editorMinimized = true;
+  // Minimized always snaps to bottom (vertical layout)
+  if (isHorizontalLayout) {
+    isHorizontalLayout = false;
+    editorPanel.style.width = "";
+    editorPanel.style.height = "";
+    mainArea.classList.remove("layout-horizontal");
+  }
+  editorBody.classList.add("is-hidden");
+  collapsedBar.classList.add("is-visible");
+  splitDivider.classList.remove("is-visible");
   resetView();
   requestAnimationFrame(() => fitToContainer());
-});
+}
+
+function expandEditor() {
+  editorMinimized = false;
+  editorBody.classList.remove("is-hidden");
+  collapsedBar.classList.remove("is-visible");
+  splitDivider.classList.add("is-visible");
+  resetView();
+  requestAnimationFrame(() => fitToContainer());
+}
+
+// Expand into a specific layout from minimized state
+function expandToLayout(horizontal: boolean) {
+  editorMinimized = false;
+  editorBody.classList.remove("is-hidden");
+  collapsedBar.classList.remove("is-visible");
+  splitDivider.classList.add("is-visible");
+  editorPanel.style.width = "";
+  editorPanel.style.height = "";
+  isHorizontalLayout = horizontal;
+  if (horizontal) {
+    mainArea.classList.add("layout-horizontal");
+  } else {
+    mainArea.classList.remove("layout-horizontal");
+  }
+  // Update toggle layout button icon + tooltip in expanded state
+  const svg = toggleLayoutBtn.querySelector("svg");
+  if (svg) svg.remove();
+  toggleLayoutBtn.appendChild(lucideIcon(horizontal ? Rows2 : Columns2));
+  toggleLayoutBtn.title = horizontal ? "Vertical Split" : "Horizontal Split";
+  resetView();
+  requestAnimationFrame(() => fitToContainer());
+}
+
+minimizeEditorBtn.addEventListener("click", minimizeEditor);
+verticalSplitBtn.addEventListener("click", () => expandToLayout(true));
+horizontalSplitBtn.addEventListener("click", () => expandToLayout(false));
+
+// Collapsed-bar action buttons mirror their expanded counterparts
+copySourceBtnC.addEventListener("click", () => copySourceBtn.click());
+sendToAiBtnC.addEventListener("click", () => sendToAiBtn.click());
 
 // ── Live re-render on edit ──
 sourceEditor.addEventListener("input", () => {
@@ -431,9 +502,21 @@ sourceEditor.addEventListener("input", () => {
       renderDiagram(code, currentTheme, currentTitle);
     }
   }, RE_RENDER_DELAY);
+
+  // Auto-save draft + auto-sync context (debounced, keyed by draftId)
+  if (draftSaveTimer) clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    const code = sourceEditor.value.trim();
+    if (code && mcpApp && draftId) {
+      mcpApp.callServerTool({ name: "save-mermaid-draft", arguments: { draftId, code } })
+        .catch((err) => console.warn("[MermaidApp] Failed to save draft:", err));
+    }
+    // Auto-sync context so LLM always sees the latest source
+    syncContextOnly();
+  }, DRAFT_SAVE_DELAY);
 });
 
-// Allow Tab key to insert tab in textarea
+// Allow Tab key to insert tab in textarea; Cmd/Ctrl+Enter to send to AI
 sourceEditor.addEventListener("keydown", (e: KeyboardEvent) => {
   if (e.key === "Tab") {
     e.preventDefault();
@@ -443,11 +526,57 @@ sourceEditor.addEventListener("keydown", (e: KeyboardEvent) => {
     sourceEditor.selectionStart = sourceEditor.selectionEnd = start + 2;
     // Trigger re-render
     sourceEditor.dispatchEvent(new Event("input"));
+  } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    // Cmd/Ctrl+Enter → send to AI (triggers LLM response)
+    e.preventDefault();
+    sendSourceToAi();
   }
 });
 
+// ─── Sync context only (silent — no LLM response triggered) ──
+async function syncContextOnly() {
+  if (!mcpApp) return;
+  const code = sourceEditor.value.trim();
+  if (!code) return;
+
+  // Only updateModelContext — LLM will see this on the NEXT user message
+  await mcpApp.updateModelContext({
+    content: [{
+      type: "text",
+      text: `Current Mermaid diagram source (updated by user):\n\`\`\`mermaid\n${code}\n\`\`\``,
+    }],
+  });
+  console.log("[MermaidApp] Context synced (silent, no LLM turn triggered)");
+}
+
+// ─── Send to AI (triggers LLM response) ───────────────────────
+async function sendSourceToAi() {
+  if (!mcpApp) return;
+  const code = sourceEditor.value.trim();
+  if (!code) return;
+
+  flashIcon(sendToAiBtn, Check, SendHorizontal, 2000);
+
+  // Send full source directly as user message
+  await mcpApp.sendMessage({
+    role: "user",
+    content: [{
+      type: "text",
+      text: `I've updated the Mermaid diagram source:\n\`\`\`mermaid\n${code}\n\`\`\``,
+    }],
+  });
+  console.log("[MermaidApp] Sent to AI (LLM turn triggered)");
+}
+
+sendToAiBtn.addEventListener("click", () => sendSourceToAi());
+
 // ── Toggle layout (vertical ↔ horizontal) ──
-toggleLayoutBtn.addEventListener("click", () => {
+function updateLayoutTooltips() {
+  const label = isHorizontalLayout ? "Vertical Split" : "Horizontal Split";
+  toggleLayoutBtn.title = label;
+}
+
+function doToggleLayout() {
   isHorizontalLayout = !isHorizontalLayout;
   // Clear any inline size from the previous layout direction
   editorPanel.style.width = "";
@@ -457,14 +586,16 @@ toggleLayoutBtn.addEventListener("click", () => {
   } else {
     mainArea.classList.remove("layout-horizontal");
   }
-  // Swap icon
+  // Swap icon + tooltip
   const svg = toggleLayoutBtn.querySelector("svg");
   if (svg) svg.remove();
-  toggleLayoutBtn.appendChild(lucideIcon(isHorizontalLayout ? Columns2 : Rows2));
+  toggleLayoutBtn.appendChild(lucideIcon(isHorizontalLayout ? Rows2 : Columns2));
+  updateLayoutTooltips();
   // Reset view after layout change
   resetView();
   requestAnimationFrame(() => fitToContainer());
-});
+}
+toggleLayoutBtn.addEventListener("click", doToggleLayout);
 
 // ── Draggable split divider ──
 let isDraggingSplit = false;
@@ -484,12 +615,12 @@ window.addEventListener("mousemove", (e: MouseEvent) => {
   if (isHorizontalLayout) {
     const x = e.clientX - mainRect.left;
     const ratio = Math.max(0.1, Math.min(0.9, x / mainRect.width));
-    editorPanel.style.width = `${ratio * 100}%`;
+    editorPanel.style.width = `${(1 - ratio) * 100}%`;
     editorPanel.style.height = "";
   } else {
     const y = e.clientY - mainRect.top;
     const ratio = Math.max(0.1, Math.min(0.9, y / mainRect.height));
-    editorPanel.style.height = `${ratio * 100}%`;
+    editorPanel.style.height = `${(1 - ratio) * 100}%`;
     editorPanel.style.width = "";
   }
 });
@@ -517,12 +648,12 @@ window.addEventListener("touchmove", (e: TouchEvent) => {
   if (isHorizontalLayout) {
     const x = touch.clientX - mainRect.left;
     const ratio = Math.max(0.1, Math.min(0.9, x / mainRect.width));
-    editorPanel.style.width = `${ratio * 100}%`;
+    editorPanel.style.width = `${(1 - ratio) * 100}%`;
     editorPanel.style.height = "";
   } else {
     const y = touch.clientY - mainRect.top;
     const ratio = Math.max(0.1, Math.min(0.9, y / mainRect.height));
-    editorPanel.style.height = `${ratio * 100}%`;
+    editorPanel.style.height = `${(1 - ratio) * 100}%`;
     editorPanel.style.width = "";
   }
 }, { passive: false });
@@ -581,7 +712,12 @@ async function initApp() {
     app.ontoolinput = (params) => {
       console.log("[MermaidApp] ontoolinput:", params);
       if (params.arguments) {
-        handleMermaidData(params.arguments as Record<string, unknown>);
+        const args = params.arguments as Record<string, unknown>;
+        // Generate draftId from original code on first receive
+        if (!draftId && args.code) {
+          draftId = hashCode(args.code as string);
+        }
+        handleMermaidData(args);
       }
     };
 
@@ -596,12 +732,48 @@ async function initApp() {
     app.ontoolresult = (params) => {
       console.log("[MermaidApp] ontoolresult:", params);
       if (params.content) {
+        // Extract original code for draftId if not set yet
+        if (!draftId) {
+          for (const block of params.content as any[]) {
+            if (block.type === "text" && block.text) {
+              try {
+                const data = JSON.parse(block.text);
+                if (data.code) {
+                  draftId = hashCode(data.code);
+                  break;
+                }
+              } catch { /* not JSON */ }
+            }
+          }
+        }
         handleContentBlocks(params.content);
       }
     };
 
     await app.connect();
+    mcpApp = app;
     console.log("[MermaidApp] Connected to host");
+
+    // Restore user's draft if available (survives iframe re-renders)
+    // Wait a tick for ontoolinput/ontoolresult to fire and set draftId
+    setTimeout(async () => {
+      if (!draftId) return;
+      try {
+        const draftResult = await app.callServerTool({
+          name: "get-mermaid-draft",
+          arguments: { draftId },
+        });
+        const draftText = draftResult?.content?.[0];
+        if (draftText && "text" in draftText && draftText.text) {
+          console.log("[MermaidApp] Restoring draft for", draftId);
+          sourceEditorDirty = true;
+          sourceEditor.value = draftText.text;
+          renderDiagram(draftText.text, currentTheme, currentTitle);
+        }
+      } catch (err) {
+        console.warn("[MermaidApp] Could not restore draft:", err);
+      }
+    }, 500);
   } catch (err) {
     console.error("[MermaidApp] Failed to connect:", err);
   }

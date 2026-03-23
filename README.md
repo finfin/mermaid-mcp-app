@@ -1,8 +1,34 @@
 # Mermaid MCP App
 
-An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interactive, zoomable UI panels — inline inside Claude, VS Code, and any MCP-compatible client.
+An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interactive, zoomable UI panels — inline inside Claude, VS Code, and any MCP-App-compatible client. Edit diagrams directly in the split-view editor and send the updated source back to the LLM to continue the conversation with the latest version.
+
+## Usage
+
+Once configured, ask the LLM to draw a diagram:
+
+```
+"Draw a flowchart showing user authentication flow"
+
+"Create a sequence diagram for an API request lifecycle"
+
+"Render this mermaid diagram: `graph TD; A-->B; B-->C`"
+```
+
+You can also specify a theme explicitly:
+
+> "Draw a class diagram with light theme"
 
 ## Features
+
+### Interaction with AI
+
+Edit the diagram source directly in the split-view editor, then send it back to the LLM to continue the conversation with your changes.
+
+![Send to AI](assets/images/send-to-ai.png)
+
+- **Send to AI** — sends the edited diagram source back to the LLM, triggering a response (`⌘↵` / `Ctrl↵`)
+- **Auto context sync** — LLM context is automatically updated as you type (debounced); the LLM always sees your latest source on the next message
+- **Draft persistence** — editor edits are saved to the server and restored across iframe re-renders
 
 ### Diagram Types (13 supported)
 
@@ -89,9 +115,10 @@ An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interacti
 - **Pan & zoom** — mouse drag to pan, scroll wheel to zoom, pinch-to-zoom on touch
 - **Fit to container** — auto-fits diagram on render; reset button restores fit
 - **Copy SVG** — copies the rendered SVG to clipboard
-- **Split-view source editor** — inline editable panel with live re-render (400ms debounce)
+- **Split-view source editor** — always-visible editor panel with live re-render (400ms debounce)
+- **Minimizable editor** — collapse to a compact bottom bar; expand with one click
 - **Draggable split divider** — resize editor / diagram panels (mouse + touch)
-- **Vertical / horizontal layout toggle**
+- **Vertical / horizontal layout toggle** — source below (vertical) or to the right (horizontal); minimized state always snaps to the bottom
 - **Toolbar tooltips** — hover labels on all toolbar buttons
 - **Theme support** — `dark` (auto-detected from system preference) and `light`
 
@@ -130,18 +157,6 @@ Add to `.vscode/mcp.json` or user settings:
   }
 }
 ```
-
-## Usage
-
-Once configured, ask the LLM to draw a diagram:
-
-> "Draw a flowchart showing user authentication flow"
-> "Create a sequence diagram for an API request lifecycle"
-> "Render this mermaid diagram: `graph TD; A-->B; B-->C`"
-
-You can also specify a theme explicitly:
-
-> "Draw a class diagram with light theme"
 
 ## Development
 

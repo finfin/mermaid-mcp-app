@@ -699,6 +699,41 @@ function handleContentBlocks(content: any[]) {
   }
 }
 
+// ─── Container dimensions (spec: §containerDimensions) ────────────────────
+const MIN_HEIGHT = 600;
+
+function applyContainerDimensions(
+  dims: { height?: number; maxHeight?: number; width?: number; maxWidth?: number } | undefined,
+) {
+  if (!dims) return; // Unbounded — CSS min-height handles the floor
+  const html = document.documentElement;
+
+  if ("height" in dims && typeof dims.height === "number") {
+    // Fixed mode: host allocates exact height — fill it
+    html.style.setProperty("height", `${dims.height}px`);
+    html.style.removeProperty("min-height");
+    document.body.style.setProperty("height", "100%");
+    document.body.style.removeProperty("min-height");
+  } else if ("maxHeight" in dims && typeof dims.maxHeight === "number") {
+    // Flexible mode: self-size up to maxHeight; respect MIN_HEIGHT floor
+    html.style.setProperty("max-height", `${dims.maxHeight}px`);
+    if (dims.maxHeight < MIN_HEIGHT) {
+      // Host can't give us 600px — accept its ceiling
+      html.style.setProperty("min-height", `${dims.maxHeight}px`);
+      document.body.style.setProperty("min-height", `${dims.maxHeight}px`);
+    }
+    // else: CSS min-height: 600px remains
+  }
+  // Unbounded (dims but no height/maxHeight): CSS handles it
+
+  if ("width" in dims && typeof dims.width === "number") {
+    html.style.setProperty("width", `${dims.width}px`);
+    html.style.removeProperty("min-width");
+  } else if ("maxWidth" in dims && typeof dims.maxWidth === "number") {
+    html.style.setProperty("max-width", `${dims.maxWidth}px`);
+  }
+}
+
 // ─── MCP App connection ─────────────────────────────────────
 async function initApp() {
   try {
@@ -753,6 +788,11 @@ async function initApp() {
     await app.connect();
     mcpApp = app;
     console.log("[MermaidApp] Connected to host");
+
+    // Apply container dimensions from host context (spec: §containerDimensions)
+    applyContainerDimensions(
+      app.getHostContext()?.containerDimensions as Parameters<typeof applyContainerDimensions>[0],
+    );
 
     // Restore user's draft if available (survives iframe re-renders)
     // Wait a tick for ontoolinput/ontoolresult to fire and set draftId

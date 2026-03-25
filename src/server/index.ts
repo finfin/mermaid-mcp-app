@@ -121,7 +121,7 @@ registerAppResource(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Mermaid MCP App server running on stdio");
+  console.log("Mermaid MCP App server running on stdio");
 }
 
 main().catch((err) => {

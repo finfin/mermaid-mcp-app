@@ -1,3 +1,5 @@
+declare const __APP_VERSION__: string;
+
 import mermaid from "mermaid";
 import { App } from "@modelcontextprotocol/ext-apps/app-with-deps";
 import { ZoomIn, ZoomOut, RotateCcw, Copy, Code2, ClipboardCopy, Check, ClipboardCheck, Columns2, Rows2, SendHorizontal, Minimize2, Maximize2, type IconNode } from "lucide";
@@ -721,9 +723,9 @@ function applyContainerDimensions(
 async function initApp() {
   try {
     const app = new App(
-      { name: "MermaidViewer", version: "1.0.0" },
+      { name: "Mermaid MCP App", version: __APP_VERSION__ },
       {}, // capabilities
-      { autoResize: true },
+      { autoResize: false },
     );
 
     // Handle complete tool input (arguments from the LLM)
@@ -776,6 +778,18 @@ async function initApp() {
     applyContainerDimensions(
       app.getHostContext()?.containerDimensions as Parameters<typeof applyContainerDimensions>[0],
     );
+
+    // 🧪 Experiment: log containerDimensions on every resize to see if values update
+    const ro = new ResizeObserver((entries) => {
+      const dims = app.getHostContext()?.containerDimensions;
+      const entry = entries[0];
+      console.log("[ResizeObserver] element size:", {
+        width: Math.round(entry.contentRect.width),
+        height: Math.round(entry.contentRect.height),
+      });
+      console.log("[ResizeObserver] containerDimensions:", dims ?? "undefined (unbounded)");
+    });
+    ro.observe(document.documentElement);
 
     // Restore user's draft if available (survives iframe re-renders)
     // Wait a tick for ontoolinput/ontoolresult to fire and set draftId

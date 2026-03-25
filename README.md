@@ -1,5 +1,7 @@
 # Mermaid MCP App
 
+English | [繁體中文](README.zh-TW.md)
+
 An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams in an interactive viewer with pan, zoom, and a built-in source editor. Edit diagrams directly in the split-view editor and send the updated source back to the LLM to continue the conversation with your changes. Works in Claude Desktop, VS Code, and any MCP-App-compatible host.
 
 ## Usage

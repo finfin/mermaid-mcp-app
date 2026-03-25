@@ -1,7 +1,7 @@
 {
   "name": "mermaid-mcp-app",
   "mcpName": "io.github.finfin/mermaid-mcp-app",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "MCP App that renders Mermaid diagrams in an interactive viewer with pan, zoom, and a built-in source editor",
   "type": "module",
   "main": "dist/server/index.js",
@@ -31,6 +31,14 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/finfin/mermaid-mcp-app.git"
+  },
+  "homepage": "https://github.com/finfin/mermaid-mcp-app",
+  "bugs": {
+    "url": "https://github.com/finfin/mermaid-mcp-app/issues"
+  },
   "engines": {
     "node": ">=20"
   },

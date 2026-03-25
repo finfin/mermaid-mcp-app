@@ -24,7 +24,7 @@ You can also specify a theme explicitly:
 
 Edit the diagram source directly in the split-view editor, then send it back to the LLM to continue the conversation with your changes.
 
-![Send to AI](assets/images/send-to-ai.png)
+![Send to AI](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/send-to-ai.png)
 
 - **Send to AI** — sends the edited diagram source back to the LLM, triggering a response
 - **Auto context sync** — LLM context is automatically updated as you type (debounced); the LLM always sees your latest source on the next message
@@ -35,79 +35,79 @@ Edit the diagram source directly in the split-view editor, then send it back to 
 
 `flowchart` — General-purpose directed graphs. Supports top-down and left-right layouts, subgraphs, and various node shapes.
 
-![Flowchart](assets/images/flowchart.png)
+![Flowchart](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/flowchart.png)
 
 #### Sequence Diagram
 
 `sequenceDiagram` — Interaction between participants over time. Shows messages, loops, and alternative flows.
 
-![Sequence Diagram](assets/images/sequence-diagram.png)
+![Sequence Diagram](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/sequence-diagram.png)
 
 #### Class Diagram
 
 `classDiagram` — Object-oriented class structure with attributes, methods, and relationships (inheritance, composition, etc.).
 
-![Class Diagram](assets/images/class-diagram.png)
+![Class Diagram](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/class-diagram.png)
 
 #### State Diagram
 
 `stateDiagram-v2` — Finite state machines with transitions, composite states, and concurrency.
 
-![State Diagram](assets/images/state-diagram.png)
+![State Diagram](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/state-diagram.png)
 
 #### ER Diagram
 
 `erDiagram` — Entity-relationship diagrams for data modeling with cardinality annotations.
 
-![ER Diagram](assets/images/er-diagram.png)
+![ER Diagram](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/er-diagram.png)
 
 #### Gantt Chart
 
 `gantt` — Project timelines with tasks, milestones, dependencies, and critical paths.
 
-![Gantt Chart](assets/images/gantt-chart.png)
+![Gantt Chart](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/gantt-chart.png)
 
 #### Pie Chart
 
 `pie` — Proportional data as pie slices with percentage labels.
 
-![Pie Chart](assets/images/pie-chart.png)
+![Pie Chart](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/pie-chart.png)
 
 #### Git Graph
 
 `gitGraph` — Git branch and commit history visualization with merge and cherry-pick flows.
 
-![Git Graph](assets/images/git-graph.png)
+![Git Graph](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/git-graph.png)
 
 #### Mindmap
 
 `mindmap` — Hierarchical tree of ideas radiating from a central root node.
 
-![Mindmap](assets/images/mindmap.png)
+![Mindmap](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/mindmap.png)
 
 #### Timeline
 
 `timeline` — Chronological events grouped by time period.
 
-![Timeline](assets/images/timeline.png)
+![Timeline](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/timeline.png)
 
 #### User Journey
 
 `journey` — User experience flows scored by satisfaction level across sections and actors.
 
-![User Journey](assets/images/user-journey.png)
+![User Journey](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/user-journey.png)
 
 #### Requirement Diagram
 
 `requirementDiagram` — System requirements with type, risk, and verification method, linked to design elements.
 
-![Requirement Diagram](assets/images/requirement-diagram.png)
+![Requirement Diagram](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/requirement-diagram.png)
 
 #### Quadrant Chart
 
 `quadrantChart` — Four-quadrant scatter plot for prioritization and positioning analysis.
 
-![Quadrant Chart](assets/images/quadrant-chart.png)
+![Quadrant Chart](https://raw.githubusercontent.com/finfin/mermaid-mcp-app/master/assets/images/quadrant-chart.png)
 
 ### UI
 

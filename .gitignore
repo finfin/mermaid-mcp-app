@@ -5,6 +5,7 @@ node_modules
 out
 dist
 *.tgz
+*.mcpb
 
 # code coverage
 coverage

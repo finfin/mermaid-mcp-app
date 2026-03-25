@@ -1,6 +1,6 @@
 # Mermaid MCP App
 
-An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams as interactive, zoomable UI panels — inline inside Claude, VS Code, and any MCP-App-compatible client. Edit diagrams directly in the split-view editor and send the updated source back to the LLM to continue the conversation with the latest version.
+An MCP App that renders [Mermaid](https://mermaid.js.org/) diagrams in an interactive viewer with pan, zoom, and a built-in source editor. Edit diagrams directly in the split-view editor and send the updated source back to the LLM to continue the conversation with your changes. Works in Claude Desktop, VS Code, and any MCP-App-compatible host.
 
 ## Usage
 
@@ -26,9 +26,8 @@ Edit the diagram source directly in the split-view editor, then send it back to 
 
 ![Send to AI](assets/images/send-to-ai.png)
 
-- **Send to AI** — sends the edited diagram source back to the LLM, triggering a response (`⌘↵` / `Ctrl↵`)
+- **Send to AI** — sends the edited diagram source back to the LLM, triggering a response
 - **Auto context sync** — LLM context is automatically updated as you type (debounced); the LLM always sees your latest source on the next message
-- **Draft persistence** — editor edits are saved to the server and restored across iframe re-renders
 
 ### Diagram Types (13 supported)
 
@@ -117,9 +116,7 @@ Edit the diagram source directly in the split-view editor, then send it back to 
 - **Copy SVG** — copies the rendered SVG to clipboard
 - **Split-view source editor** — always-visible editor panel with live re-render (400ms debounce)
 - **Minimizable editor** — collapse to a compact bottom bar; expand with one click
-- **Draggable split divider** — resize editor / diagram panels (mouse + touch)
 - **Vertical / horizontal layout toggle** — source below (vertical) or to the right (horizontal); minimized state always snaps to the bottom
-- **Toolbar tooltips** — hover labels on all toolbar buttons
 - **Theme support** — `dark` (auto-detected from system preference) and `light`
 
 ## Installation

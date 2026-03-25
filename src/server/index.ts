@@ -52,11 +52,11 @@ server.tool(
 // Accepts Mermaid syntax and sends it to the UI for rendering
 registerAppTool(
   server,
-  "render-mermaid",
+  "mermaid-mcp-app",
   {
-    title: "Render Mermaid Diagram",
+    title: "Mermaid MCP App",
     description:
-      "Render a Mermaid diagram from Mermaid syntax. Supports flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, gitgraph, mindmaps, timelines, and more.",
+      "Render a Mermaid diagram in an interactive viewer with pan, zoom, and a built-in source editor. The user can edit the diagram and send changes back to the conversation. Supports all Mermaid diagram types.",
     inputSchema: {
       code: z
         .string()
@@ -66,9 +66,9 @@ registerAppTool(
         .optional()
         .describe("Optional title for the diagram"),
       theme: z
-        .enum(["default", "light", "dark", "forest", "neutral"])
+        .enum(["default", "light", "dark"])
         .optional()
-        .describe("Mermaid theme to use. 'default' auto-detects dark/light mode. 'light' forces the light theme. 'dark', 'forest', 'neutral' are explicit choices."),
+        .describe("Mermaid theme to use. 'default' auto-detects dark/light mode. 'light' forces the light theme. 'dark' forces the dark theme."),
     },
     _meta: {
       ui: {

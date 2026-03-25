@@ -350,17 +350,9 @@ async function renderDiagram(
       isFirstRender = false;
       await document.fonts.ready;
       await waitForStableLayout([diagramEl, innerEl]);
-      resetView();
-      fitToContainer();
-    } else {
-      // Subsequent renders: lightweight double-rAF is enough.
-      resetView();
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          fitToContainer();
-        });
-      });
     }
+    resetView();
+    fitToContainer();
   } catch (err: any) {
     diagramEl.classList.remove("is-visible");
     toolbar.classList.remove("visible");
@@ -722,15 +714,6 @@ function applyContainerDimensions(
       html.style.setProperty("min-height", `${dims.maxHeight}px`);
       document.body.style.setProperty("min-height", `${dims.maxHeight}px`);
     }
-    // else: CSS min-height: 600px remains
-  }
-  // Unbounded (dims but no height/maxHeight): CSS handles it
-
-  if ("width" in dims && typeof dims.width === "number") {
-    html.style.setProperty("width", `${dims.width}px`);
-    html.style.removeProperty("min-width");
-  } else if ("maxWidth" in dims && typeof dims.maxWidth === "number") {
-    html.style.setProperty("max-width", `${dims.maxWidth}px`);
   }
 }
 

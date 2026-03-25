@@ -3,8 +3,8 @@
   "name": "mermaid-mcp-app",
   "display_name": "Mermaid Diagram Renderer",
   "version": "0.4.0",
-  "description": "Render Mermaid diagrams as interactive, zoomable UI panels inside Claude Desktop.",
-  "long_description": "An MCP App that renders Mermaid diagrams as interactive, zoomable UI panels — inline inside Claude Desktop. Supports 13 diagram types: flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, git graphs, mindmaps, timelines, user journeys, requirement diagrams, and quadrant charts. Features pan & zoom, fit-to-container, copy SVG, source code viewer, and automatic dark/light theme detection.",
+  "description": "Render Mermaid diagrams in an interactive viewer with pan, zoom, and a built-in source editor.",
+  "long_description": "An MCP App that renders any Mermaid diagram in an interactive viewer — inline inside the host. Features pan & zoom, fit-to-container, copy SVG, split-view source editor, send edits back to the conversation, draft persistence, and automatic dark/light theme detection. Supports all Mermaid diagram types.",
   "author": {
     "name": "mermaid-mcp-app contributors"
   },
@@ -30,7 +30,7 @@
   "tools": [
     {
       "name": "render-mermaid",
-      "description": "Render a Mermaid diagram from Mermaid syntax. Supports flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, gitgraph, mindmaps, timelines, and more."
+      "description": "Render a Mermaid diagram in an interactive viewer with pan, zoom, and a built-in source editor. The user can edit the diagram and send changes back to the conversation. Supports all Mermaid diagram types."
     }
   ],
   "keywords": [

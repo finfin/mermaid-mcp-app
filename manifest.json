@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "mermaid-mcp-app",
   "display_name": "Mermaid Diagram Renderer",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Render Mermaid diagrams in an interactive viewer with pan, zoom, and a built-in source editor.",
   "long_description": "An MCP App that renders any Mermaid diagram in an interactive viewer — inline inside the host. Features pan & zoom, fit-to-container, copy SVG, split-view source editor, send edits back to the conversation, draft persistence, and automatic dark/light theme detection. Supports all Mermaid diagram types.",
   "author": {

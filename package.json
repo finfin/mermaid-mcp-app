@@ -1,7 +1,7 @@
 {
   "name": "mermaid-mcp-app",
   "mcpName": "io.github.finfin/mermaid-mcp-app",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "MCP App that renders Mermaid diagrams in an interactive viewer with pan, zoom, and a built-in source editor",
   "type": "module",
   "main": "dist/server/index.js",

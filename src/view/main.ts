@@ -725,7 +725,7 @@ async function initApp() {
     const app = new App(
       { name: "Mermaid MCP App", version: __APP_VERSION__ },
       {}, // capabilities
-      { autoResize: false },
+      { autoResize: true },
     );
 
     // Handle complete tool input (arguments from the LLM)
